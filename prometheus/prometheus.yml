@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # Node Exporter - thu thập CPU, memory, disk metrics
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: instance
+        replacement: '$1'
+
+  # Prometheus tự giám sát
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # FastAPI Python service
+  - job_name: 'fastapi-demo'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['fastapi-demo:8000']
+
+  # Spring Boot Java service
+  - job_name: 'springboot-demo'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['springboot-demo:8081']
