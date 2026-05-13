@@ -37,6 +37,8 @@ services:
     networks:
       - observability
 
+  # Alloy thu thập logs từ Docker containers và forward tới Loki
+  # (đã xoá Promtail để tránh duplicate)
   alloy:
     image: grafana/alloy:latest
     container_name: alloy
@@ -44,8 +46,7 @@ services:
       - "12345:12345"
     volumes:
       - ./alloy/config.alloy:/etc/alloy/config.alloy
-      - /var/log:/var/log:ro
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
     command:
       - 'run'
       - '--server.http.listen-addr=0.0.0.0:12345'
@@ -63,6 +64,7 @@ services:
     ports:
       - "3200:3200"
       - "4317:4317"
+      - "4318:4318"
     networks:
       - observability
 
@@ -85,6 +87,7 @@ services:
       - "3001:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor traceToMetrics
     volumes:
       - ./grafana/datasources:/etc/grafana/provisioning/datasources
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
@@ -103,6 +106,9 @@ services:
       - "8080:80"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - fastapi-demo
+      - springboot-demo
     networks:
       - observability
 
@@ -115,31 +121,28 @@ services:
       - OTEL_SERVICE_NAME=fastapi-demo
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
       - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_PYTHON_LOG_CORRELATION=true
     networks:
       - observability
     depends_on:
       - tempo
+      - loki
 
   springboot-demo:
     build: ./demo-apps/springboot-app
     container_name: springboot-demo
     ports:
       - "8083:8080"
+    environment:
+      - OTEL_SERVICE_NAME=springboot-demo
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
+      - OTEL_TRACES_EXPORTER=otlp
+      - OTEL_METRICS_EXPORTER=none
+      - OTEL_LOGS_EXPORTER=none
     networks:
       - observability
     depends_on:
       - tempo
-
-  promtail:
-    image: grafana/promtail:latest
-    container_name: promtail
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./promtail/promtail-config.yml:/etc/promtail/config.yml
-    command: -config.file=/etc/promtail/config.yml
-    networks:
-      - observability
-    restart: unless-stopped
 
 networks:
   observability:

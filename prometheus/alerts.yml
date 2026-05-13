@@ -17,6 +17,9 @@ groups:
         for: 5m
         labels:
           severity: warning
+        annotations:
+          summary: "Memory usage > 90% on {{ $labels.instance }}"
+          description: "Memory used: {{ $value | printf \"%.1f\" }}%"
 
       # Alert 3: Response latency cao (P99 > 1s)
       - alert: HighRequestLatency
@@ -27,7 +30,7 @@ groups:
 
       # Alert 4: Error rate > 5%
       - alert: HighErrorRate
-        expr: sum(rate(http_requests_total{status=~"5.."}[5m])) / sum(rate(http_requests_total[5m])) > 0.05
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) or vector(0)) / sum(rate(http_requests_total[5m])) > 0.05
         for: 2m
         labels:
           severity: critical
