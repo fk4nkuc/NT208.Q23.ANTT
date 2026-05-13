@@ -13,6 +13,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-remote-write-receiver'
     networks:
       - observability
 
@@ -114,6 +115,20 @@ services:
       - OTEL_SERVICE_NAME=fastapi-demo
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
       - OTEL_TRACES_EXPORTER=otlp
+    networks:
+      - observability
+    depends_on:
+      - tempo
+
+  springboot-demo:
+    build: ./demo-apps/springboot-app
+    container_name: springboot-demo
+    ports:
+      - "8082:8080"
+      - "8083:8081"
+    environment:
+      - OTEL_SERVICE_NAME=springboot-demo
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
     networks:
       - observability
     depends_on:
