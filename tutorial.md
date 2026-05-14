@@ -1,247 +1,244 @@
-# Noi dung trinh bay Demo - Observability Dashboard
+# Nội dung trình bày Demo - Observability Dashboard
 
 ---
 
-## Gioi thieu he thong (noi truoc khi vao demo)
+## Giới thiệu hệ thống (nói trước khi vào demo)
+"Em xây dựng một hệ thống Observability hoàn chỉnh, tức là khả năng quan sát và hiểu được trạng thái bên trong của hệ thống chỉ dựa vào output của nó — mà không cần phải SSH vào server hay đọc log thủ công.
 
-"Em xay dung mot he thong Observability hoan chinh, tuc la kha nang quan sat va hieu duoc
-trang thai ben trong cua he thong chi dua vao output cua no — ma khong can phai SSH vao
-server hay doc log thu cong.
+Hệ thống gồm 3 thành phần cốt lõi được gọi là 3 pillars of observability:
+- Metrics  — Prometheus thu thập số liệu CPU, RAM, request rate, error rate.
+- Logs     — Loki tổng hợp log từ tất cả service, có thể tìm kiếm và lọc.
+- Traces   — Tempo lưu distributed traces, cho thấy 1 request đi qua những đâu.
 
-He thong gom 3 thanh phan cot loi duoc goi la 3 pillars of observability:
-- Metrics  — Prometheus thu thap so lieu CPU, RAM, request rate, error rate
-- Logs     — Loki tong hop log tu tat ca service, co the tim kiem va loc
-- Traces   — Tempo luu distributed traces, cho thay 1 request di qua nhung dau
+Và Grafana là nơi hiển thị tất cả 3 thứ đó trên cùng 1 dashboard.
 
-Va Grafana la noi hien thi tat ca 3 thu do tren cung 1 dashboard.
-
-Toan bo chay bang Docker Compose, bao gom 2 demo app: FastAPI viet bang Python va
-Spring Boot viet bang Java — dai dien cho moi truong da ngon ngu thuc te."
+Toàn bộ chạy bằng Docker Compose, bao gồm 2 demo app: FastAPI viết bằng Python và
+Spring Boot viết bằng Java — đại diện cho môi trường đa ngôn ngữ thực tế."
 
 ---
 
-## Demo 1 — Luong du lieu binh thuong
+## Demo 1 — Luồng dữ liệu bình thường
 
-### Khi mo Prometheus → Status → Targets
+### Khi mở Prometheus → Status → Targets
 
-"Day la trang Targets cua Prometheus. Em thay 5 service dang duoc scrape va tat ca deu
-UP — mau xanh la. Prometheus cu 15 giay lai keo metrics tu cac endpoint nay 1 lan. Neu
-co service nao DOWN thi se doi mau do ngay."
+"Đây là trang Targets của Prometheus. Em thấy 5 service đang được scrape và tất cả đều
+UP — màu xanh lá. Prometheus cứ 15 giây lại kéo metrics từ các endpoint này 1 lần. Nếu
+có service nào DOWN thì sẽ đổi màu đỏ ngay."
 
-### Khi mo Grafana → Observability Overview
+### Khi mở Grafana → Observability Overview
 
-"Day la dashboard tong hop. Hang dau tien la 4 panel Service Health — 4 service deu UP,
-nen xanh. Day la cai nhin nhanh nhat: chi can nhin vao day la biet ngay toan bo he thong
-dang on hay khong.
+"Đây là dashboard tổng hợp. Hàng đầu tiên là 4 panel Service Health — 4 service đều UP,
+nên xanh. Đây là cái nhìn nhanh nhất: chỉ cần nhìn vào đây là biết ngay toàn bộ hệ thống
+đang ổn hay không.
 
-Xuong hang 2 la 2 dong ho gauge — CPU dang dung bao nhieu phan tram, Memory dang dung
-bao nhieu. Hien tai he thong nhan nen kim o vung xanh.
+Xuống hàng 2 là 2 đồng hồ gauge — CPU đang dùng bao nhiêu phần trăm, Memory đang dùng
+bao nhiêu. Hiện tại hệ thống nhàn nên kim ở vùng xanh.
 
-Hang 3 la Request Rate — so request moi giay dang den he thong. Vua roi em gui 20 request
-nen duong bieu do co nhich len.
+Hàng 3 là Request Rate — số request mỗi giây đang đến hệ thống. Vừa rồi em gửi 20 request
+nên đường biểu đồ có nhích lên.
 
-Hang cuoi la Logs — o day Grafana ket noi thang toi Loki va hien thi log tu tat ca service
-ngay tren dashboard, khong can mo tab khac."
+Hàng cuối là Logs — ở đây Grafana kết nối thẳng tới Loki và hiển thị log từ tất cả service
+ngay trên dashboard, không cần mở tab khác."
 
-### Khi mo Explore → Tempo
+### Khi mở Explore → Tempo
 
-"Trong Explore, em chon datasource Tempo va tim theo service name 'fastapi-demo'. Thay
-danh sach trace — moi trace tuong ung voi 1 request. O day quan trong la cot Spans = 6
-— tuc la 1 request tao ra 6 span, bao gom ca span HTTP va span Redis ma em se noi ro hon
-o Demo 4."
+"Trong Explore, em chọn datasource Tempo và tìm theo service name 'fastapi-demo'. Thấy
+danh sách trace — mỗi trace tương ứng với 1 request. Ở đây quan trọng là cột Spans = 6
+— tức là 1 request tạo ra 6 span, bao gồm cả span HTTP và span Redis mà em sẽ nói rõ hơn
+ở Demo 4."
 
 ---
 
-## Demo 2 — Gia lap loi & Root Cause Analysis
+## Demo 2 — Giả lập lỗi & Root Cause Analysis
 
-### Khi bat dau gui loi
+### Khi bắt đầu gửi lỗi
 
-"Em dang gia lap 1 tinh huong thuc te: co code moi deploy bi loi, lien tuc tra ve HTTP 500.
-Em gui 1 request loi moi giay trong 2.5 phut. Dieu quan trong la phai gui lien tuc — vi
-Prometheus tinh rate() theo toc do tang cua counter, neu dung thi rate ve 0 ngay va alert
-se khong bao gio fire."
+"Em đang giả lập 1 tình huống thực tế: có code mới deploy bị lỗi, liên tục trả về HTTP 500.
+Em gửi 1 request lỗi mỗi giây trong 2.5 phút. Điều quan trọng là phải gửi liên tục — vì
+Prometheus tính rate() theo tốc độ tăng của counter, nếu dừng thì rate về 0 ngay và alert
+sẽ không bao giờ fire."
 
-### Khi nhin vao Grafana Error Rate panel
+### Khi nhìn vào Grafana Error Rate panel
 
-"Nhin vao panel Error Rate — duong bieu do vua nhay tu 10% len gan 50%. Trong thuc te
-con so nay binh thuong phai gan 0%, khi no tang dot bien nhu vay la dau hieu ro rang co
-su co."
+"Nhìn vào panel Error Rate — đường biểu đồ vừa nhảy từ 10% lên gần 50%. Trong thực tế
+con số này bình thường phải gần 0%, khi nó tăng đột biến như vậy là dấu hiệu rõ ràng có
+sự cố."
 
-### Khi mo Prometheus → Alerts sau 30 giay
+### Khi mở Prometheus → Alerts sau 30 giây
 
-"Bay gio mo Prometheus trang Alerts. Thay HighErrorRate dang pending — mau vang. Pending
-co nghia la dieu kien da thoa man nhung chua du thoi gian — alert rule em cau hinh la
-'for: 2m', tuc la phai duy tri loi 2 phut lien tuc moi fire, de tranh false alarm."
+"Bây giờ mở Prometheus trang Alerts. Thấy HighErrorRate đang pending — màu vàng. Pending
+có nghĩa là điều kiện đã thỏa mãn nhưng chưa đủ thời gian — alert rule em cấu hình là
+'for: 2m', tức là phải duy trì lỗi 2 phút liên tục mới fire, để tránh false alarm."
 
-### Khi alert chuyen firing
+### Khi alert chuyển firing
 
-"Sau dung 2 phut tu luc bat dau — alert chuyen sang firing, mau do. Day chinh la MTTD —
-Mean Time To Detect — khoang 2 phut. Neu khong co monitoring thi phai cho user bao, co
-the mat 30 phut hoac hon."
+"Sau đúng 2 phút từ lúc bắt đầu — alert chuyển sang firing, màu đỏ. Đây chính là MTTD —
+Mean Time To Detect — khoảng 2 phút. Nếu không có monitoring thì phải chờ user báo, có
+thể mất 30 phút hoặc hơn."
 
-### Khi mo Alertmanager
+### Khi mở Alertmanager
 
-"Mo Alertmanager — day la noi nhan alert tu Prometheus va dinh tuyen di. Trong production
-thuc te, tu day co the gui email, Slack, PagerDuty... Hien tai em thay HighErrorRate dang
-active voi timestamp ro rang."
+"Mở Alertmanager — đây là nơi nhận alert từ Prometheus và định tuyến đi. Trong production
+thực tế, từ đây có thể gửi email, Slack, PagerDuty... Hiện tại em thấy HighErrorRate đang
+active với timestamp rõ ràng."
 
-### Khi mo Explore → Loki
+### Khi mở Explore → Loki
 
-"Bay gio em debug. Mo Explore Loki, query cac log co chua 'error'. Em thay cac dong log
-mau do: ERROR fastapi-demo trace_id=5f3290ab... forced error endpoint called. Chu y truong
-trace_id — day la mau chot de ket noi log voi trace."
+"Bây giờ em debug. Mở Explore Loki, query các log có chứa 'error'. Em thấy các dòng log
+màu đỏ: ERROR fastapi-demo trace_id=5f3290ab... forced error endpoint called. Chú ý trường
+trace_id — đây là mấu chốt để kết nối log với trace."
 
 ### Khi click View Trace
 
-"Em click vao log entry, expand ra, thay truong trace_id, va click nut Tempo ben canh.
-Tempo tu dong mo dung trace cua request do — thay span 'GET /api/error' voi HTTP 500.
-Toan bo luong debug: alert → log → trace chi mat khoang 30 giay."
+"Em click vào log entry, expand ra, thấy trường trace_id, và click nút Tempo bên cạnh.
+Tempo tự động mở đúng trace của request đó — thấy span 'GET /api/error' với HTTP 500.
+Toàn bộ luồng debug: alert → log → trace chỉ mất khoảng 30 giây."
 
 ---
 
 ## Demo 3 — Stress Test & Bottleneck
 
-### Khi bat dau chay k6
+### Khi bắt đầu chạy k6
 
-"Em dung k6 — cong cu load testing — de tao tai tang dan: tu 10 user len 50 roi 100 user
-dong thoi, trong 2.5 phut. Trong khi k6 dang chay, em mo Grafana de quan sat real-time."
+"Em dùng k6 — công cụ load testing — để tạo tải tăng dần: từ 10 user lên 50 rồi 100 user
+đồng thời, trong 2.5 phút. Trong khi k6 đang chạy, em mở Grafana để quan sát real-time."
 
-### Khi nhin Request Rate tang
+### Khi nhìn Request Rate tăng
 
-"Nhin panel Request Rate — duong bieu do dang leo dan tu 1 len khoang 8–10 req/s theo
-dung giai doan ramp-up cua k6. He thong dang nhan tai tang dan."
+"Nhìn panel Request Rate — đường biểu đồ đang leo dần từ 1 lên khoảng 8–10 req/s theo
+đúng giai đoạn ramp-up của k6. Hệ thống đang nhận tải tăng dần."
 
-### Khi nhin Response Time
+### Khi nhìn Response Time
 
-"Panel Response Time quan trong nhat. Ba duong P50, P95, P99 — P99 dang leo kha cao, vuot
-1000ms. Day la dau hieu bottleneck. Cau hoi la: endpoint nao dang cham?"
+"Panel Response Time quan trọng nhất. Ba đường P50, P95, P99 — P99 đang leo khá cao, vượt
+1000ms. Đây là dấu hiệu bottleneck. Câu hỏi là: endpoint nào đang chậm?"
 
-### Khi mo Prometheus → Graph
+### Khi mở Prometheus → Graph
 
-"Vao Prometheus, dan query PromQL nay vao: histogram_quantile(0.99,...). Ket qua hien ngay:
-/api/slow co P99 khoang 1500–2000ms — day la bottleneck ro rang, trong khi /api/data chi
-100–200ms va /health gan nhu 0. Prometheus cho phep em dinh luong duoc bottleneck chu
-khong phai doan mo."
+"Vào Prometheus, dán query PromQL này vào: histogram_quantile(0.99,...). Kết quả hiện ngay:
+/api/slow có P99 khoảng 1500–2000ms — đây là bottleneck rõ ràng, trong khi /api/data chỉ
+100–200ms và /health gần như 0. Prometheus cho phép em định lượng được bottleneck chứ
+không phải đoán mò."
 
-### Khi k6 ket thuc
+### Khi k6 kết thúc
 
-"k6 in ra bang ket qua. Nhin vao 2 chi so quan trong: p(99) cua http_req_duration va
-http_req_failed rate. Neu p(99) vuot 500ms hoac failed rate vuot 5% thi threshold fail —
-dau x mau do. Day la bang chung khach quan he thong co chiu duoc tai hay khong."
+"k6 in ra bảng kết quả. Nhìn vào 2 chỉ số quan trọng: p(99) của http_req_duration và
+http_req_failed rate. Nếu p(99) vượt 500ms hoặc failed rate vượt 5% thì threshold fail —
+đánh dấu màu đỏ. Đây là bằng chứng khách quan hệ thống có chịu được tải hay không."
 
 ---
 
 ## Demo 4 — Distributed Trace: Nginx → FastAPI → Redis
 
-### Khi gioi thieu
+### Khi giới thiệu
 
-"Demo nay em muon chung minh rang trace khong chi dung o tang HTTP — no di xuyen qua toan
-bo duong di cua request, ke ca xuong database."
+"Demo này em muốn chứng minh rằng trace không chỉ dừng ở tầng HTTP — nó đi xuyên qua toàn
+bộ đường đi của request, kể cả xuống database."
 
-### Khi mo trinh duyet F12
+### Khi mở trình duyệt F12
 
-"Goi request qua Nginx proxy — port 8080. Mo F12, tab Network, nhin vao Response Headers
-— thay X-Request-ID. Header nay duoc Nginx tu dong sinh ra va gan vao moi request. Bay
-gio goi thang FastAPI port 8000 — khong co X-Request-ID. Dieu nay chung minh Nginx dang
-dung o giua lam nhiem vu proxy."
+"Gọi request qua Nginx proxy — port 8080. Mở F12, tab Network, nhìn vào Response Headers
+— thấy X-Request-ID. Header này được Nginx tự động sinh ra và gán vào mỗi request. Bây
+giờ gọi thẳng FastAPI port 8000 — không có X-Request-ID. Điều này chứng minh Nginx đang
+đứng ở giữa làm nhiệm vụ proxy."
 
-### Khi mo Tempo trace view
+### Khi mở Tempo trace view
 
-"Vao Grafana Explore, chon Tempo, search service 'fastapi-demo', endpoint 'GET /api/data'.
-Click vao 1 trace — thay waterfall chart. Nhin vao cau truc:
+"Vào Grafana Explore, chọn Tempo, search service 'fastapi-demo', endpoint 'GET /api/data'.
+Click vào 1 trace — thấy waterfall chart. Nhìn vào cấu trúc:
 
-  - Span ngoai cung: GET /api/data — day la HTTP span, FastAPI xu ly request
-  - Ben trong co 2 span con: INCRBY va GET — day la Redis spans
+  - Span ngoài cùng: GET /api/data — đây là HTTP span, FastAPI xử lý request
+  - Bên trong có 2 span con: INCRBY và GET — đây là Redis spans
 
-Hover vao span Redis — thay attribute db.system = redis, db.statement = INCRBY ? ?. Day
-la bang chung trace di xuyen tu App xuong DB."
+Hover vào span Redis — thấy attribute db.system = redis, db.statement = INCRBY ? ?. Đây
+là bằng chứng trace đi xuyên từ App xuống DB."
 
-### Khi mo Explore Loki va click View Trace
+### Khi mở Explore Loki và click View Trace
 
-"Bay gio em demo log-to-trace correlation. Trong Explore Loki, query log cua fastapi-demo.
-Moi dong log deu co trace_id. Em click expand dong log — thay truong trace_id — click nut
-Tempo ben canh — Tempo tu nhay sang dung trace do. Day la tinh nang correlation: tu log
-tim duoc trace tuong ung trong chua den 2 giay."
+"Bây giờ em demo log-to-trace correlation. Trong Explore Loki, query log của fastapi-demo.
+Mỗi dòng log đều có trace_id. Em click expand dòng log — thấy trường trace_id — click nút
+Tempo bên cạnh — Tempo tự nhảy sang đúng trace đó. Đây là tính năng correlation: từ log
+tìm được trace tương ứng trong chưa đến 2 giây."
 
 ---
 
-## Demo 5 — 5 Alert Rules tu dong
+## Demo 5 — 5 Alert Rules tự động
 
-### Khi mo Prometheus → Alerts
+### Khi mở Prometheus → Alerts
 
-"He thong em co 5 alert rules. Nhin vao trang nay — binh thuong tat ca deu inactive, mau
-xam. 5 alert bao phu cac su co thuong gap nhat: CPU qua cao, Memory qua cao, Latency tang
-bat thuong, Error rate tang, va Service down."
+"Hệ thống em có 5 alert rules. Nhìn vào trang này — bình thường tất cả đều inactive, màu
+xám. 5 alert bao phủ các sự cố thường gặp nhất: CPU quá cao, Memory quá cao, Latency tăng
+bất thường, Error rate tăng, và Service down."
 
 ### Khi demo ServiceDown
 
-"Em tat fastapi-demo: docker compose stop fastapi-demo. Bay gio refresh Prometheus sau 15
-giay — thay ServiceDown chuyen pending, mau vang. Sau 1 phut — chuyen firing, mau do,
-kem thong bao 'Service fastapi-demo is down'. Alertmanager nhan duoc ngay lap tuc.
+"Em tắt fastapi-demo: docker compose stop fastapi-demo. Bây giờ refresh Prometheus sau 15
+giây — thấy ServiceDown chuyển pending, màu vàng. Sau 1 phút — chuyển firing, màu đỏ,
+kèm thông báo 'Service fastapi-demo is down'. Alertmanager nhận được ngay lập tức.
 
-Thoi gian phat hien: duoi 75 giay — nhanh hon rat nhieu so voi cho user bao."
+Thời gian phát hiện: dưới 75 giây — nhanh hơn rất nhiều so với chờ user báo."
 
-### Khi khoi phuc
+### Khi khôi phục
 
-"Chay lai: docker compose start fastapi-demo. Sau 1–2 phut alert tu giai quyet — bien mat
-khoi Alertmanager. He thong tu healing khong can can thiep thu cong."
+"Chạy lại: docker compose start fastapi-demo. Sau 1–2 phút alert tự giải quyết — biến mất
+khỏi Alertmanager. Hệ thống tự healing không cần can thiệp thủ công."
 
 ### Khi demo HighRequestLatency
 
-"Alert thu 3 la Latency cao. Em gui nhieu request den /api/slow dong thoi — endpoint nay
-random tu 0.5–2 giay. P99 vuot 1 giay → alert firing. Dieu nay co nghia la: neu trong
-production co code cham dot ngot, he thong se tu phat hien va bao dong ma khong can ai
-ngoi canh."
+"Alert thứ 3 là Latency cao. Em gửi nhiều request đến /api/slow đồng thời — endpoint này
+random từ 0.5–2 giây. P99 vượt 1 giây → alert firing. Điều này có nghĩa là: nếu trong
+production có code chậm đột ngột, hệ thống sẽ tự phát hiện và báo động mà không cần ai
+ngồi canh."
 
 ---
 
-## Demo 6 — Do overhead cua OpenTelemetry
+## Demo 6 — Đo overhead của OpenTelemetry
 
-### Khi gioi thieu
+### Khi giới thiệu
 
-"Mot cau hoi thuc te khi trien khai observability la: no co lam cham he thong khong? Tracing
-middleware phai tao span, dong goi du lieu, gui qua mang den Tempo — tat ca deu ton thoi
-gian. Demo nay do xem overhead do la bao nhieu."
+"Một câu hỏi thực tế khi triển khai observability là: nó có làm chậm hệ thống không? Tracing
+middleware phải tạo span, đóng gói dữ liệu, gửi qua mạng đến Tempo — tất cả đều tốn thời
+gian. Demo này đo xem overhead đó là bao nhiêu."
 
-### Khi chay script
+### Khi chạy script
 
-"Em chay script do overhead. Script nay spin up 1 container thu 2 voi OTEL_ENABLED=false
-— tuc la cung code, cung image, nhung khong co bat ky OpenTelemetry nao. Sau do do 50
-request voi OTel ON va 50 request voi OTel OFF roi so sanh."
+"Em chạy script đo overhead. Script này spin up 1 container thứ 2 với OTEL_ENABLED=false
+— tức là cùng code, cùng image, nhưng không có bất kỳ OpenTelemetry nào. Sau đó đo 50
+request với OTel ON và 50 request với OTel OFF rồi so sánh."
 
-### Khi doc ket qua
+### Khi đọc kết quả
 
-"Ket qua: OTel ON avg khoang 95ms, OTel OFF avg khoang 91ms — overhead khoang 4ms hay ~4%.
-Con so nay chap nhan duoc hoan toan, dac biet khi endpoint co business logic 50–200ms thi
-4ms overhead chi chiem chua den 5%.
+"Kết quả: OTel ON avg khoảng 95ms, OTel OFF avg khoảng 91ms — overhead khoảng 4ms hay ~4%.
+Con số này chấp nhận được hoàn toàn, đặc biệt khi endpoint có business logic 50–200ms thì
+4ms overhead chỉ chiếm chưa đến 5%.
 
-Cung xac nhan qua Prometheus: endpoint /health — khong co business logic — co P50 chi 2ms.
-Do la overhead thuan cua OTel. So voi /api/data P50 la 90ms thi overhead la 2.2% — khong
-dang ke."
+Cũng xác nhận qua Prometheus: endpoint /health — không có business logic — có P50 chỉ 2ms.
+Đó là overhead thuần của OTel. So với /api/data P50 là 90ms thì overhead là 2.2% — không
+đáng kể."
 
-### Ket luan overhead
+### Kết luận overhead
 
-"Ket luan: OpenTelemetry them ~2–5ms moi request. Voi he thong co latency tu nhien tu 50ms
-tro len, overhead duoi 5% la hoan toan chap nhan duoc va khong anh huong den trai nghiem
-nguoi dung."
+"Kết luận: OpenTelemetry thêm ~2–5ms mỗi request. Với hệ thống có latency tự nhiên từ 50ms
+trở lên, overhead dưới 5% là hoàn toàn chấp nhận được và không ảnh hưởng đến trải nghiệm
+người dùng."
 
 ---
 
-## Ket luan chung (noi cuoi cung)
+## Kết luận chung (nói cuối cùng)
 
-"Tong ket lai, em da xay dung va chung minh hoat dong cua he thong observability voi day
-du 3 pillar:
+"Tổng kết lại, em đã xây dựng và chứng minh hoạt động của hệ thống observability với đầy
+đủ 3 pillar:
 
-  - Metrics : CPU, RAM, request rate, error rate — thu thap tu dong qua Prometheus
-  - Logs    : tu FastAPI va Spring Boot — tong hop qua Alloy vao Loki, co trace_id de
+  - Metrics : CPU, RAM, request rate, error rate — thu thập tự động qua Prometheus
+  - Logs    : từ FastAPI và Spring Boot — tổng hợp qua Alloy vào Loki, có trace_id để
               correlation
-  - Traces  : end-to-end tu Nginx → FastAPI → Redis — thay duoc duong di request xuyen
-              qua tung tang
+  - Traces  : end-to-end từ Nginx → FastAPI → Redis — thấy được đường đi request xuyên
+              qua từng tầng
 
-Khi co su co: alert tu firing trong 1–2 phut, tu alert tim log, tu log nhay sang trace —
-debug chi mat 30 giay thay vi phai grep log thu cong.
+Khi có sự cố: alert tự firing trong 1–2 phút, từ alert tìm log, từ log nhảy sang trace —
+debug chỉ mất 30 giây thay vì phải grep log thủ công.
 
-Overhead cua tracing la ~4% — chap nhan duoc cho production.
+Overhead của tracing là ~4% — chấp nhận được cho production.
 
-Day la nen tang de trong production thuc te, team co the giam MTTD tu hang chuc phut xuong
-con duoi 2 phut."
+Đây là nền tảng để trong production thực tế, team có thể giảm MTTD từ hàng chục phút xuống
+còn dưới 2 phút."
