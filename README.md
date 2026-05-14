@@ -628,8 +628,8 @@ HighRequestLatency   [firing]
 #### Chuẩn bị — Chạy script đo overhead
 
 ```powershell
-# Windows PowerShell — từ thư mục gốc project
-.\test-scripts\measure-overhead.ps1 -Requests 50
+# Windows PowerShell — tu thu muc goc project
+powershell -ExecutionPolicy Bypass -File .\test-scripts\measure-overhead.ps1 -Requests 50
 ```
 
 ```bash
