@@ -11,7 +11,7 @@ export const options = {
     ],
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:80';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 export default function () {
     const res = http.get(`${BASE_URL}/api/data`);

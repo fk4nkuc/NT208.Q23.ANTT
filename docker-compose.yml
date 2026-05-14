@@ -112,6 +112,19 @@ services:
     networks:
       - observability
 
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - observability
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   fastapi-demo:
     build: ./demo-apps/fastapi-app
     container_name: fastapi-demo
@@ -122,11 +135,13 @@ services:
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://tempo:4317
       - OTEL_TRACES_EXPORTER=otlp
       - OTEL_PYTHON_LOG_CORRELATION=true
+      - OTEL_ENABLED=true
     networks:
       - observability
     depends_on:
       - tempo
       - loki
+      - redis
 
   springboot-demo:
     build: ./demo-apps/springboot-app

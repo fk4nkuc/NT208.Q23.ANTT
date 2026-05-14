@@ -27,13 +27,19 @@ groups:
         for: 2m
         labels:
           severity: critical
+        annotations:
+          summary: "P99 latency > 1s"
+          description: "P99 request latency is {{ $value | printf \"%.2f\" }}s (threshold: 1s)"
 
       # Alert 4: Error rate > 5%
       - alert: HighErrorRate
-        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) or vector(0)) / sum(rate(http_requests_total[5m])) > 0.05
+        expr: (sum(rate(http_requests_total{status=~"5.."}[5m])) or vector(0)) / (sum(rate(http_requests_total[5m])) > 0) > 0.05
         for: 2m
         labels:
           severity: critical
+        annotations:
+          summary: "Error rate > 5%"
+          description: "HTTP 5xx error rate is {{ $value | humanizePercentage }} (threshold: 5%)"
 
       # Alert 5: Service down
       - alert: ServiceDown
@@ -41,3 +47,6 @@ groups:
         for: 1m
         labels:
           severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is down"
+          description: "Target {{ $labels.instance }} (job={{ $labels.job }}) has been unreachable for > 1 minute"

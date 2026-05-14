@@ -19,9 +19,10 @@ export const options = {
         http_req_failed: ['rate<0.05'],  // Error rate < 5%
         error_rate: ['rate<0.1'],
     },
+    summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
 };
 
-const BASE_URL = __ENV.BASE_URL || 'http://localhost:80';
+const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080';
 
 export default function () {
     group('API Calls', () => {
@@ -49,11 +50,13 @@ export default function () {
 }
 
 export function handleSummary(data) {
+    const dur = data.metrics.http_req_duration.values;
     console.log('===== LOAD TEST SUMMARY =====');
     console.log(`Total requests: ${data.metrics.http_reqs.values.count}`);
-    console.log(`Error rate: ${data.metrics.http_req_failed.values.rate * 100}%`);
-    console.log(`P95 latency: ${data.metrics.http_req_duration.values['p(95)']}ms`);
-    console.log(`P99 latency: ${data.metrics.http_req_duration.values['p(99)']}ms`);
+    console.log(`Error rate:     ${(data.metrics.http_req_failed.values.rate * 100).toFixed(2)}%`);
+    console.log(`P95 latency:    ${dur['p(95)'] !== undefined ? dur['p(95)'].toFixed(1) : 'N/A'}ms`);
+    console.log(`P99 latency:    ${dur['p(99)'] !== undefined ? dur['p(99)'].toFixed(1) : 'N/A'}ms`);
+    console.log(`Avg latency:    ${dur['avg'] !== undefined ? dur['avg'].toFixed(1) : 'N/A'}ms`);
     return {
         'results/load-test-summary.json': JSON.stringify(data, null, 2),
     };
