@@ -94,8 +94,7 @@ Chạy lệnh sau — tất cả phải trả về `up`:
 
 ```bash
 # Kiểm tra 5 Prometheus targets
-curl -s http://localhost:9090/api/v1/targets \
-  | python -c "import sys,json; [print(t['labels']['job'], t['health']) for t in json.load(sys.stdin)['data']['activeTargets']]"
+curl.exe -s http://localhost:9090/api/v1/targets | python -c "import sys,json; [print(t['labels']['job'], t['health']) for t in json.load(sys.stdin)['data']['activeTargets']]"
 ```
 
 **Kết quả mong đợi:**
